@@ -26,7 +26,9 @@ cd backend
 
 ```bash
 python3 -m venv venv
+python -m venv venv
 ```
+
 
 ```bash
 # macOS / Linux
@@ -60,3 +62,7 @@ deployment thì chạy
 ```bash
 uvicorn main:app --reload
 ```
+
+docker-compose -f infra/docker-compose.yml up -d
+cd backend
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000

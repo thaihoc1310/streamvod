@@ -1,0 +1,7 @@
+DROP USER IF EXISTS 'mydb'@'%';
+DROP USER IF EXISTS 'mydb'@'localhost';
+DROP USER IF EXISTS 'mydb'@'127.0.0.1';
+
+CREATE USER 'mydb'@'%' IDENTIFIED WITH mysql_native_password BY '12345678';
+GRANT ALL PRIVILEGES ON *.* TO 'mydb'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
