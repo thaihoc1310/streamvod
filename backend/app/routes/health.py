@@ -5,7 +5,7 @@ from app.db import SessionLocal
 
 router = APIRouter()
 
-@router.get("/healthz")
+@router.get("/")
 def health_check():
     db = SessionLocal()
     try:

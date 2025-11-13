@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 from sqlalchemy import (
     Column, String, Text, Enum, Integer, DateTime
@@ -6,7 +6,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.mysql import CHAR, VARCHAR
 from sqlalchemy.ext.declarative import declarative_base
 
-Base = declarative_base()
+from app.db import Base
 
 class Video(Base):
     __tablename__ = "videos"
@@ -16,7 +16,7 @@ class Video(Base):
     description = Column(Text)
     status = Column(Enum("uploading", "processing", "ready", "failed"), nullable=False, default="uploading")
 
-    s3_source_key = Column(VARCHAR(1024))
+    s3_source_key = Column(VARCHAR(1024), nullable=False)
     s3_dest_prefix = Column(VARCHAR(1024))
     hls_master_key = Column(VARCHAR(1024))
     playback_url = Column(VARCHAR(2048))
