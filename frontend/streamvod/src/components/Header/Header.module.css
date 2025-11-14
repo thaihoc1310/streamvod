@@ -121,3 +121,68 @@
 .iconButton:hover {
   background-color: #f0f0f0;
 }
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .header {
+    padding: 10px 16px;
+  }
+  
+  .centerSection {
+    max-width: 500px;
+  }
+  
+  .searchInput {
+    font-size: 14px;
+    padding: 8px 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 8px 12px;
+  }
+  
+  .logoText {
+    font-size: 18px;
+  }
+  
+  .centerSection {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .logoText {
+    display: none;
+  }
+  
+  .loginButton span {
+    display: none;
+  }
+  
+  .centerSection {
+    max-width: none;
+    flex-grow: 1;
+  }
+  
+  .rightSection {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .searchInput {
+    font-size: 14px;
+    padding: 8px 32px;
+  }
+  
+  .micButton {
+    display: none;
+  }
+}

@@ -1,19 +1,100 @@
 /* src/pages/HomePage/HomePage.module.css */
 
-
-
 .videoGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px 5px; 
-  padding: 24px 48px;
+  gap: 40px 16px; 
+  padding: 24px 24px;
   width: 100%;
-  box-sizing: border-box; 
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
 }
 
-@media (max-width: 700px) {
+/* Extra large screens (2560px+) - 6 columns */
+@media (min-width: 2560px) {
+  .videoGrid {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 2400px;
+    padding: 24px 80px;
+  }
+}
+
+/* Very large screens (1920px - 2559px) - 5 columns */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  .videoGrid {
+    grid-template-columns: repeat(5, 1fr);
+    max-width: 1800px;
+    padding: 24px 64px;
+  }
+}
+
+/* Large screens (1536px - 1919px) - 4 columns */
+@media (min-width: 1536px) and (max-width: 1919px) {
+  .videoGrid {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 1440px;
+    padding: 24px 48px;
+  }
+}
+
+/* Desktop (1280px - 1535px) - 4 columns */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  .videoGrid {
+    grid-template-columns: repeat(4, 1fr);
+    padding: 24px 40px;
+  }
+}
+
+/* Medium laptop (1024px - 1279px) - 3 columns */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .videoGrid {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 24px 32px;
+    gap: 32px 16px;
+  }
+}
+
+/* Small laptop (900px - 1023px) - 3 columns */
+@media (min-width: 900px) and (max-width: 1023px) {
+  .videoGrid {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 20px 24px;
+    gap: 28px 12px;
+  }
+}
+
+/* Tablet (768px - 899px) - 2 columns */
+@media (min-width: 768px) and (max-width: 899px) {
+  .videoGrid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 20px;
+    gap: 24px 12px;
+  }
+}
+
+/* Mobile landscape (600px - 767px) - 2 columns */
+@media (min-width: 600px) and (max-width: 767px) {
+  .videoGrid {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 16px;
+    gap: 20px 10px;
+  }
+}
+
+/* Mobile portrait (480px - 599px) - 1 column */
+@media (min-width: 480px) and (max-width: 599px) {
   .videoGrid {
     grid-template-columns: 1fr;
     padding: 16px;
+    gap: 16px;
+  }
+}
+
+/* Small mobile (below 480px) - 1 column */
+@media (max-width: 479px) {
+  .videoGrid {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
   }
 }

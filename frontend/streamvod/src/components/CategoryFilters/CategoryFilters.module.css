@@ -51,3 +51,28 @@
 .filterButton.active:hover {
     background-color: #406c7a;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .filtersContainer {
+    padding: 10px 16px;
+  }
+  
+  .filterButton {
+    font-size: 13px;
+    padding: 6px 12px;
+    margin-right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .filtersContainer {
+    padding: 8px 12px;
+  }
+  
+  .filterButton {
+    font-size: 12px;
+    padding: 6px 10px;
+    margin-right: 6px;
+  }
+}

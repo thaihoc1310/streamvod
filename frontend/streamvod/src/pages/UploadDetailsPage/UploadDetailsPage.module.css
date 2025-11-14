@@ -1,12 +1,13 @@
 /* src/pages/UploadDetailsPage/UploadDetailsPage.module.css */
 .pageContainer {
   display: grid;
-  
   grid-template-columns: 2fr 1fr;
   gap: 32px;
   padding: 40px;
   max-width: 1400px;
+  min-height: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .formSection {
@@ -34,9 +35,22 @@
 @media (max-width: 900px) {
   .pageContainer {
     grid-template-columns: 1fr;
+    padding: 24px 16px;
   }
 
   .previewSection {
     order: -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageContainer {
+    padding: 16px 12px;
+    gap: 24px;
+  }
+  
+  .createButton {
+    width: 100%;
+    padding: 12px 20px;
   }
 }
