@@ -1,0 +1,42 @@
+/* src/pages/UploadDetailsPage/UploadDetailsPage.module.css */
+.pageContainer {
+  display: grid;
+  
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  padding: 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.createButton {
+  background-color: #4A7C8C;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  align-self: flex-start;
+}
+
+.createButton:hover {
+  background-color: #406c7a;
+}
+
+@media (max-width: 900px) {
+  .pageContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .previewSection {
+    order: -1;
+  }
+}

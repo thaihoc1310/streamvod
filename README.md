@@ -20,7 +20,7 @@ npm run dev
 PHẢI CÀI python3 VÀ pip TRƯỚC sau đó làm như dưới
 
 
-```bash
+```bash 
 cd backend
 ```
 

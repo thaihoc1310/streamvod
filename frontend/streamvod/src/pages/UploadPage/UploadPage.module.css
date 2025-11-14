@@ -1,0 +1,27 @@
+/* src/pages/UploadPage/UploadPage.module.css */
+.pageContainer {
+  display: flex;
+  justify-content: center;
+  padding: 40px 24px;
+  background-color: #f0f2f5; 
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.uploadWrapper {
+  max-width: 1100px;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px; 
+  margin-top: 32px;
+  padding-top: 32px;
+  border-top: 1px solid #e8e8e8;
+}

@@ -1,0 +1,48 @@
+/* src/components/Dropzone/Dropzone.module.css */
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  border: 2px dashed #d9d9d9;
+  border-radius: 12px;
+  text-align: center;
+  background-color: #fafafa;
+  min-height: 300px;
+}
+
+.uploadIcon {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 24px;
+  color: #8c8c8c;
+}
+
+.dropzone h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  color: #262626;
+}
+
+.dropzone p {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  color: #8c8c8c;
+}
+
+.uploadButton {
+  background-color: #4A7C8C; 
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.uploadButton:hover {
+  background-color: #406c7a;
+}
