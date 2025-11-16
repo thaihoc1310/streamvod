@@ -8,7 +8,8 @@ const TextInputWithCounter = ({
   value,
   onChange,
   maxLength,
-  isTextarea = false, 
+  isTextarea = false,
+  disabled = false,
 }) => {
   const currentLength = value.length;
 
@@ -21,7 +22,8 @@ const TextInputWithCounter = ({
           value={value}
           onChange={onChange}
           maxLength={maxLength}
-          rows="5" 
+          rows="5"
+          disabled={disabled}
         />
       ) : (
         <input
@@ -30,6 +32,7 @@ const TextInputWithCounter = ({
           value={value}
           onChange={onChange}
           maxLength={maxLength}
+          disabled={disabled}
         />
       )}
       <span className={styles.counter}>
