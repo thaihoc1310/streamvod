@@ -1,0 +1,78 @@
+/* src/components/CategoryFilters/CategoryFilters.module.css */
+
+.filtersContainer {
+
+ 
+
+  display: flex;
+  align-items: center;
+  overflow-x: auto; 
+  white-space: nowrap;
+  
+  background-color: #ffffff;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e0e0e0;
+
+  -ms-overflow-style: none;  
+  scrollbar-width: none;  
+}
+
+.filtersContainer::-webkit-scrollbar {
+  display: none;
+}
+
+.filterButton {
+  /* Giao diện nút */
+  padding: 8px 16px;
+  margin-right: 12px;
+  border: none;
+  border-radius: 999px; 
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  
+  
+  /*  mặc định  */
+  background-color: #f0f2f5;
+  color: #0f0f0f;
+  
+  transition: background-color 0.2s ease;
+}
+
+.filterButton:hover {
+  background-color: #e0e0e0;
+}
+
+/* nút được chọn */
+.filterButton.active {
+  background-color: #4A7C8C; 
+  color: #ffffff;
+}
+.filterButton.active:hover {
+    background-color: #406c7a;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .filtersContainer {
+    padding: 10px 16px;
+  }
+  
+  .filterButton {
+    font-size: 13px;
+    padding: 6px 12px;
+    margin-right: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .filtersContainer {
+    padding: 8px 12px;
+  }
+  
+  .filterButton {
+    font-size: 12px;
+    padding: 6px 10px;
+    margin-right: 6px;
+  }
+}

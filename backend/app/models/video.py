@@ -14,7 +14,7 @@ class Video(Base):
     id = Column(CHAR(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     title = Column(VARCHAR(255), nullable=False)
     description = Column(Text)
-    status = Column(Enum("uploading", "processing", "ready", "failed"), nullable=False, default="uploading")
+    status = Column(Enum("processing", "ready", "failed"), nullable=False, default="processing")
 
     s3_source_key = Column(VARCHAR(1024), nullable=False)
     s3_dest_prefix = Column(VARCHAR(1024))

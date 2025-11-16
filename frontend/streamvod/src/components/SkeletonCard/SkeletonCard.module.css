@@ -1,0 +1,43 @@
+/* src/components/SkeletonCard/SkeletonCard.module.css */
+
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.thumbnail {
+  width: 100%;
+  padding-top: 56.25%; 
+  border-radius: 12px;
+  background-color: #e0e0e0;
+}
+
+.info {
+  padding: 12px 0;
+}
+
+.line {
+  height: 16px;
+  border-radius: 4px;
+  background-color: #e0e0e0;
+  margin-bottom: 8px;
+}
+
+
+.thumbnail,
+.line {
+  background-image: linear-gradient(to right, #e0e0e0 0%, #f0f0f0 20%, #e0e0e0 40%, #e0e0e0 100%);
+  background-repeat: no-repeat;
+  background-size: 800px 104px;
+  animation: shimmer 1.5s linear infinite;
+}

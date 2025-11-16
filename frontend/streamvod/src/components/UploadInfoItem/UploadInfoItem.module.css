@@ -1,0 +1,26 @@
+/* src/components/UploadInfoItem/UploadInfoItem.module.css */
+.infoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  margin-top: 2px;
+  color: #3ea6ff; 
+}
+
+.textContainer h4 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  color: #0f0f0f;
+}
+
+.textContainer p {
+  margin: 0;
+  font-size: 13px;
+  color: #606060;
+  line-height: 1.5;
+}

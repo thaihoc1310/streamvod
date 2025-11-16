@@ -158,7 +158,7 @@ def initiate_video_upload(
         id=vid,
         title="",
         description="",
-        status="uploading",
+        status="processing",
         s3_source_key=s3_source_key,
         s3_dest_prefix=f"hls/{vid}/",
     )

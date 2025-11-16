@@ -1,0 +1,188 @@
+/* src/components/Header/Header.module.css */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #ffffff;
+  gap: 20px;
+  width: 100%;
+
+}
+
+/*trái */
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logoContainer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.logoIcon {
+  height: 32px; 
+}
+
+.logoText {
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: -0.5px;
+}
+
+/* giữa  */
+.centerSection {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 600px; 
+}
+
+.searchContainer {
+  position: relative;
+  width: 100%;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 40px;
+  border-radius: 999px; /* Bo tròn tuyệt đối */
+  border: 1px solid #ccc;
+  font-size: 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #3ea6ff;
+  box-shadow: 0 0 0 2px rgba(62, 166, 255, 0.3);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #606060;
+}
+
+.micButton {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* - phải --- */
+.rightSection {
+  display: flex;
+  align-items: center;
+  gap: 1px
+}
+
+.loginButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background-color: transparent;
+  color: #065fd4;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.loginButton:hover {
+  background-color: #f2f8ff;
+}
+
+/* -nút icon --- */
+.iconButton {
+  background-color: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.iconButton:hover {
+  background-color: #f0f0f0;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+  .header {
+    padding: 10px 16px;
+  }
+  
+  .centerSection {
+    max-width: 500px;
+  }
+  
+  .searchInput {
+    font-size: 14px;
+    padding: 8px 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 8px 12px;
+  }
+  
+  .logoText {
+    font-size: 18px;
+  }
+  
+  .centerSection {
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 640px) {
+  .logoText {
+    display: none;
+  }
+  
+  .loginButton span {
+    display: none;
+  }
+  
+  .centerSection {
+    max-width: none;
+    flex-grow: 1;
+  }
+  
+  .rightSection {
+    gap: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 8px;
+    gap: 8px;
+  }
+  
+  .searchInput {
+    font-size: 14px;
+    padding: 8px 32px;
+  }
+  
+  .micButton {
+    display: none;
+  }
+}
