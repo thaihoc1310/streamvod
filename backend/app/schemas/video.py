@@ -3,6 +3,8 @@ from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
+from app.schemas.user import UploaderInfo
+
 # healper schema
 class presignedresponse(BaseModel):
     url: str
@@ -19,6 +21,7 @@ class VideoItem(BaseModel):
     status: str
     duration_seconds: Optional[int] = None
     created_at:  datetime
+    uploader: Optional[UploaderInfo] = None
 
 class VideoDetail(BaseModel):
     model_config = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})
@@ -37,6 +40,12 @@ class VideoDetail(BaseModel):
     s3_source_key: Optional[str] = None
     s3_dest_prefix: Optional[str] = None
     hls_master_key: Optional[str] = None
+    
+    # Engagement fields
+    uploader: Optional[UploaderInfo] = None
+    like_count: int = 0
+    is_liked: bool = False
+    is_watch_later: bool = False
 
 class VideoCreate(BaseModel):
     video_id: str

@@ -1,5 +1,6 @@
 // src/services/videoService.js
 import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
+import { getAuthHeaders } from './authService';
 
 /**
  * Initiate video upload - Lấy presigned URL từ backend
@@ -8,9 +9,7 @@ import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 export const initiateVideoUpload = async () => {
   const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.VIDEO_INITIATE}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
@@ -76,9 +75,7 @@ export const getVideoById = async (videoId) => {
 export const updateVideo = async (videoId, data) => {
   const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.VIDEO_BY_ID(videoId)}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(data),
   });
 

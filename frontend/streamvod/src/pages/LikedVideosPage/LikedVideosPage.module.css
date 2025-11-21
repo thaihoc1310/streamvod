@@ -1,0 +1,84 @@
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 3rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.error {
+  color: #c33;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.emptyText {
+  font-size: 1.2rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.browseButton {
+  padding: 0.875rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: white;
+  background: #4A7C8C;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.browseButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 20px rgba(74, 124, 140, 0.4);
+}
+
+.videoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .videoGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+

@@ -11,6 +11,12 @@ import UploadPage from './pages/UploadPage/UploadPage';
 import UploadDetailsPage from './pages/UploadDetailsPage/UploadDetailsPage';
 import VideoWatchPage from './pages/VideoWatchPage/VideoWatchPage';
 import SearchResultsPage from './pages/SearchResultsPage/SearchResultsPage';
+import LoginPage from './pages/LoginPage/LoginPage';
+import RegisterPage from './pages/RegisterPage/RegisterPage';
+import LikedVideosPage from './pages/LikedVideosPage/LikedVideosPage';
+import WatchLaterPage from './pages/WatchLaterPage/WatchLaterPage';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import { AuthProvider } from './context/AuthContext';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -28,8 +34,40 @@ const AppLayout = () => {
       <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/watch/:id" element={<VideoWatchPage />} />
-      <Route path="/upload" element={<UploadPage />} />
-      <Route path="/upload-details" element={<UploadDetailsPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route 
+        path="/upload" 
+        element={
+          <ProtectedRoute>
+            <UploadPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/upload-details" 
+        element={
+          <ProtectedRoute>
+            <UploadDetailsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/liked-videos" 
+        element={
+          <ProtectedRoute>
+            <LikedVideosPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/watch-later" 
+        element={
+          <ProtectedRoute>
+            <WatchLaterPage />
+          </ProtectedRoute>
+        } 
+      />
       <Route path="/search" element={<SearchResultsPage />} />
       </Routes >
       </main> 
@@ -39,7 +77,9 @@ const AppLayout = () => {
 const App = () => {
   return (
     <BrowserRouter>
-      <AppLayout />
+      <AuthProvider>
+        <AppLayout />
+      </AuthProvider>
     </BrowserRouter>
   );
 };

@@ -14,9 +14,14 @@ from app.schemas.video import (
     VideoUpdate,
     presignedresponse,
 )
+from app.schemas.user import UploaderInfo
 from app.utils.video_utils import get_db
 from app.models.video import Video
+from app.models.user import User
+from app.models.like import Like
+from app.models.watch_later import WatchLater
 from app.utils.s3_utils import generate_presigned_post
+from app.utils.auth_middleware import get_current_user, get_current_user_optional
 
 router = APIRouter()
 
@@ -49,8 +54,17 @@ def list_videos(
         )
         results = db.execute(query).scalars().all()
 
-        items = [
-            VideoItem(
+        items = []
+        for v in results:
+            uploader_info = None
+            if v.uploader_id and v.uploader:
+                uploader_info = UploaderInfo(
+                    id=v.uploader.id,
+                    username=v.uploader.username,
+                    profile_picture=v.uploader.profile_picture
+                )
+            
+            items.append(VideoItem(
                 id=v.id,
                 title=v.title,
                 description=v.description,
@@ -58,9 +72,8 @@ def list_videos(
                 status=v.status,
                 duration_seconds=v.duration_seconds,
                 created_at=v.created_at,
-            )
-            for v in results
-        ]
+                uploader=uploader_info
+            ))
 
         total_pages = math.ceil(total_items / per_page) if total_items > 0 else 0
 
@@ -80,7 +93,11 @@ def list_videos(
         )
 
 @router.get("/{id}", response_model=VideoDetail)
-def get_video(id: str, db: Session = Depends(get_db)):
+def get_video(
+    id: str, 
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
     try:
         video = db.get(Video, id)
     except Exception as e:
@@ -95,6 +112,38 @@ def get_video(id: str, db: Session = Depends(get_db)):
             detail="Video not found",
         )
 
+    # Get uploader info
+    uploader_info = None
+    if video.uploader_id and video.uploader:
+        uploader_info = UploaderInfo(
+            id=video.uploader.id,
+            username=video.uploader.username,
+            profile_picture=video.uploader.profile_picture
+        )
+    
+    # Get like count
+    like_count = db.execute(
+        select(func.count()).select_from(Like).where(Like.video_id == id)
+    ).scalar_one()
+    
+    # Check if current user has liked or added to watch later
+    is_liked = False
+    is_watch_later = False
+    if current_user:
+        is_liked = db.execute(
+            select(func.count()).select_from(Like).where(
+                Like.video_id == id,
+                Like.user_id == current_user.id
+            )
+        ).scalar_one() > 0
+        
+        is_watch_later = db.execute(
+            select(func.count()).select_from(WatchLater).where(
+                WatchLater.video_id == id,
+                WatchLater.user_id == current_user.id
+            )
+        ).scalar_one() > 0
+
     return VideoDetail(
         id=video.id,
         title=video.title,
@@ -108,16 +157,34 @@ def get_video(id: str, db: Session = Depends(get_db)):
         s3_source_key=video.s3_source_key,
         s3_dest_prefix=video.s3_dest_prefix,
         hls_master_key=video.hls_master_key,
+        uploader=uploader_info,
+        like_count=like_count,
+        is_liked=is_liked,
+        is_watch_later=is_watch_later
     )
 
 @router.put("/{id}", response_model=VideoDetail)
 def update_video(
     id: str,
     info_new: VideoUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     try:
         video = db.get(Video, id)
+        
+        if not video:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Video not found",
+            )
+        
+        # Check if user is the owner of the video
+        if video.uploader_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You can only update your own videos",
+            )
 
         if info_new.title is not None:
             video.title = info_new.title
@@ -126,6 +193,34 @@ def update_video(
         db.add(video)
         db.commit()
         db.refresh(video)
+        
+        # Get uploader info
+        uploader_info = None
+        if video.uploader:
+            uploader_info = UploaderInfo(
+                id=video.uploader.id,
+                username=video.uploader.username,
+                profile_picture=video.uploader.profile_picture
+            )
+        
+        # Get like count and user's engagement status
+        like_count = db.execute(
+            select(func.count()).select_from(Like).where(Like.video_id == id)
+        ).scalar_one()
+        
+        is_liked = db.execute(
+            select(func.count()).select_from(Like).where(
+                Like.video_id == id,
+                Like.user_id == current_user.id
+            )
+        ).scalar_one() > 0
+        
+        is_watch_later = db.execute(
+            select(func.count()).select_from(WatchLater).where(
+                WatchLater.video_id == id,
+                WatchLater.user_id == current_user.id
+            )
+        ).scalar_one() > 0
         
         return VideoDetail(
             id=video.id,
@@ -139,8 +234,14 @@ def update_video(
             playback_url=video.playback_url,
             s3_source_key=video.s3_source_key,
             s3_dest_prefix=video.s3_dest_prefix,
-            hls_master_key=video.hls_master_key
+            hls_master_key=video.hls_master_key,
+            uploader=uploader_info,
+            like_count=like_count,
+            is_liked=is_liked,
+            is_watch_later=is_watch_later
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -149,7 +250,8 @@ def update_video(
 
 @router.post("/initiate", response_model=VideoCreate)
 def initiate_video_upload(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     vid = str(uuid.uuid4())
     s3_source_key = f"uploads/{vid}.mp4"
@@ -161,6 +263,7 @@ def initiate_video_upload(
         status="processing",
         s3_source_key=s3_source_key,
         s3_dest_prefix=f"hls/{vid}/",
+        uploader_id=current_user.id
     )
     db.add(video)
     db.commit()

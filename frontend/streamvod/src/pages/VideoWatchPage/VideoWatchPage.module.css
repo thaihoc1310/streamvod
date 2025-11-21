@@ -43,6 +43,102 @@
   font-weight: bold;
 }
 
+/* Action Buttons */
+.actionButtons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #f2f2f2;
+  border: none;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f0f0f;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.actionButton:hover:not(:disabled) {
+  background-color: #e5e5e5;
+}
+
+.actionButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actionButton.liked {
+  background-color: #3ea6ff;
+  color: white;
+}
+
+.actionButton.liked:hover {
+  background-color: #1c8fe7;
+}
+
+.actionButton.saved {
+  background-color: #065fd4;
+  color: white;
+}
+
+.actionButton.saved:hover {
+  background-color: #0450b4;
+}
+
+/* Uploader Section */
+.uploaderSection {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.uploaderAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.uploaderAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.uploaderInfo {
+  flex: 1;
+}
+
+.uploaderName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f0f0f;
+  margin: 0 0 4px 0;
+}
+
+.uploadDate {
+  font-size: 13px;
+  color: #606060;
+  margin: 0;
+}
+
 .descriptionSection {
   background-color: #f9f9f9;
   border-radius: 12px;

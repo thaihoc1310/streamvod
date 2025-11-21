@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 import { FiMenu, FiUpload, FiHome, FiClock, FiThumbsUp, FiFolder } from 'react-icons/fi';
 import Logo from '../../assets/icons/logo.svg';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const handleLogoClick = () => {
     navigate('/');
@@ -19,6 +21,24 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const handleHomeClick = () => {
     navigate('/');
+    onClose();
+  };
+
+  const handleWatchLaterClick = () => {
+    if (isAuthenticated) {
+      navigate('/watch-later');
+    } else {
+      navigate('/login');
+    }
+    onClose();
+  };
+
+  const handleLikedVideosClick = () => {
+    if (isAuthenticated) {
+      navigate('/liked-videos');
+    } else {
+      navigate('/login');
+    }
     onClose();
   };
 
@@ -56,19 +76,14 @@ const Sidebar = ({ isOpen, onClose }) => {
             <span>Trang chủ</span>
           </button>
 
-          <button className={styles.navItem}>
+          <button className={styles.navItem} onClick={handleWatchLaterClick}>
             <FiClock size={24} />
             <span>Xem sau</span>
           </button>
 
-          <button className={styles.navItem}>
+          <button className={styles.navItem} onClick={handleLikedVideosClick}>
             <FiThumbsUp size={24} />
             <span>Video đã thích</span>
-          </button>
-
-          <button className={styles.navItem}>
-            <FiFolder size={24} />
-            <span>Bộ sưu tập</span>
           </button>
         </nav>
       </div>
