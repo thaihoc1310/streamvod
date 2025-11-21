@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 # healper schema
@@ -10,6 +10,8 @@ class presignedresponse(BaseModel):
 
 # main schemas
 class VideoItem(BaseModel):
+    model_config = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})
+    
     id: str
     title: str
     description: Optional[str] = None
@@ -19,6 +21,8 @@ class VideoItem(BaseModel):
     created_at:  datetime
 
 class VideoDetail(BaseModel):
+    model_config = ConfigDict(json_encoders={datetime: lambda v: v.isoformat()})
+    
     id: str
     title: str
     description: Optional[str] = None

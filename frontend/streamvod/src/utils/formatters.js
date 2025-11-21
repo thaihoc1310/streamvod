@@ -51,14 +51,34 @@ export const getStatusText = (status) => {
 
 /**
  * Get time ago text from date
- * @param {Date|string} date
+ * @param {Date|string} date - ISO string or Date object (assumes UTC if no timezone)
  * @returns {string}
  */
 export const getTimeAgo = (date) => {
+  if (!date) return '';
+  
   const now = new Date();
-  const past = new Date(date);
+  let past;
+  
+  // If date is string without timezone info, assume it's UTC
+  if (typeof date === 'string' && !date.includes('Z') && !date.includes('+')) {
+    // Add 'Z' to indicate UTC
+    past = new Date(date + 'Z');
+  } else {
+    past = new Date(date);
+  }
+  
+  // Check if date is valid
+  if (isNaN(past.getTime())) {
+    console.warn('Invalid date:', date);
+    return '';
+  }
+  
   const diffInSeconds = Math.floor((now - past) / 1000);
 
+  // Handle negative time (future dates - shouldn't happen but be safe)
+  if (diffInSeconds < 0) return 'Vừa xong';
+  
   if (diffInSeconds < 60) return 'Vừa xong';
   if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
   if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;

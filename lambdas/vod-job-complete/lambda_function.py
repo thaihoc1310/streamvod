@@ -34,7 +34,7 @@ def lambda_handler(event, context):
     
     try:
         if status == 'COMPLETE':
-            # Sử dụng CloudFront domain
+            # Use CloudFront domain
             multicdn_domain = os.environ.get('MULTICDN_DOMAIN', 'cfvideo.th285.site')
             
             # Master playlist path
