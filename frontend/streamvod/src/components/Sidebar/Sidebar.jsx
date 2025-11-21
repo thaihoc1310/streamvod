@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Sidebar.module.css';
-import { FiMenu, FiUpload, FiHome, FiClock, FiThumbsUp, FiFolder } from 'react-icons/fi';
+import { FiMenu, FiUpload, FiHome, FiClock, FiThumbsUp, FiVideo } from 'react-icons/fi';
 import Logo from '../../assets/icons/logo.svg';
 import { useAuth } from '../../context/AuthContext';
 
@@ -42,6 +42,15 @@ const Sidebar = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  const handleMyVideosClick = () => {
+    if (isAuthenticated) {
+      navigate('/my-videos');
+    } else {
+      navigate('/login');
+    }
+    onClose();
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -75,6 +84,13 @@ const Sidebar = ({ isOpen, onClose }) => {
             <FiHome size={24} />
             <span>Trang chủ</span>
           </button>
+
+          {isAuthenticated && (
+            <button className={styles.navItem} onClick={handleMyVideosClick}>
+              <FiVideo size={24} />
+              <span>Video của tôi</span>
+            </button>
+          )}
 
           <button className={styles.navItem} onClick={handleWatchLaterClick}>
             <FiClock size={24} />

@@ -22,16 +22,8 @@ const HomePage = () => {
         setIsLoading(true);
         const response = await getVideos(page, 20); // Load 20 videos per page
         
-        // Map API data to match VideoCard props
-        const mappedVideos = response.videos.map(video => ({
-          id: video.id,
-          thumbnail: video.thumbnail_url,
-          duration: video.duration_seconds ? formatDuration(video.duration_seconds) : '0:00',
-          title: video.title,
-          uploadedAgo: getTimeAgo(video.created_at),
-        }));
-        
-        setVideos(mappedVideos);
+        // VideoCard now handles formatting internally
+        setVideos(response.videos);
         setHasMore(response.has_next);
         setIsLoading(false);
       } catch (err) {

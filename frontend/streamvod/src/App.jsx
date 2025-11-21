@@ -15,6 +15,7 @@ import LoginPage from './pages/LoginPage/LoginPage';
 import RegisterPage from './pages/RegisterPage/RegisterPage';
 import LikedVideosPage from './pages/LikedVideosPage/LikedVideosPage';
 import WatchLaterPage from './pages/WatchLaterPage/WatchLaterPage';
+import MyVideosPage from './pages/MyVideosPage/MyVideosPage';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -65,6 +66,14 @@ const AppLayout = () => {
         element={
           <ProtectedRoute>
             <WatchLaterPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/my-videos" 
+        element={
+          <ProtectedRoute>
+            <MyVideosPage />
           </ProtectedRoute>
         } 
       />

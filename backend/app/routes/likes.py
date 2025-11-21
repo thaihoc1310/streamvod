@@ -131,6 +131,7 @@ def get_liked_videos(
                 thumbnail_url=video.thumbnail_url,
                 status=video.status,
                 duration_seconds=video.duration_seconds,
+                views=video.views,
                 created_at=video.created_at,
                 uploader=uploader_info
             ))

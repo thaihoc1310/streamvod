@@ -71,7 +71,7 @@ const UploadDetailsPage = () => {
         description: description.trim(),
       });
       
-      alert('Tạo video thành công!');
+      // alert('Tạo video thành công!');
       navigate('/');
     } catch (error) {
       console.error('Error updating video:', error);
@@ -100,7 +100,7 @@ const UploadDetailsPage = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={400}
-              disabled={!isReady}
+              disabled={false}
             />
             <TextInputWithCounter
               label="Mô tả"
@@ -109,7 +109,7 @@ const UploadDetailsPage = () => {
               onChange={(e) => setDescription(e.target.value)}
               maxLength={4000}
               isTextarea={true}
-              disabled={!isReady}
+              disabled={false}
             />
             <button 
               className={`${styles.createButton} ${!isReady ? styles.disabled : ''}`}

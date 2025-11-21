@@ -151,6 +151,16 @@ const Header = () => {
                   <button 
                     className={styles.menuItem}
                     onClick={() => {
+                      navigate('/my-videos');
+                      setShowUserMenu(false);
+                    }}
+                  >
+                    <FiUser size={18} />
+                    <span>My Videos</span>
+                  </button>
+                  <button 
+                    className={styles.menuItem}
+                    onClick={() => {
                       navigate('/liked-videos');
                       setShowUserMenu(false);
                     }}

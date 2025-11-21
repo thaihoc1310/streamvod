@@ -71,6 +71,7 @@ def get_user_videos(
             thumbnail_url=v.thumbnail_url,
             status=v.status,
             duration_seconds=v.duration_seconds,
+            views=v.views,
             created_at=v.created_at,
             uploader=uploader_info
         )

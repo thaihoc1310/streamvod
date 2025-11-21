@@ -89,3 +89,29 @@ export const getTimeAgo = (date) => {
 
 // Alias for consistency
 export const formatTimeAgo = getTimeAgo;
+
+/**
+ * Format view count for display
+ * @param {number} views - Number of views
+ * @returns {string} Formatted view count
+ */
+export const formatViews = (views) => {
+  if (!views || views === 0) return '0 lượt xem';
+  
+  if (views < 1000) {
+    return `${views} lượt xem`;
+  }
+  
+  if (views < 1000000) {
+    const thousands = (views / 1000).toFixed(1);
+    return `${thousands}K lượt xem`;
+  }
+  
+  if (views < 1000000000) {
+    const millions = (views / 1000000).toFixed(1);
+    return `${millions}M lượt xem`;
+  }
+  
+  const billions = (views / 1000000000).toFixed(1);
+  return `${billions}B lượt xem`;
+};

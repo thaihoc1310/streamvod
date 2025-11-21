@@ -20,6 +20,7 @@ class VideoItem(BaseModel):
     thumbnail_url: Optional[str] = None
     status: str
     duration_seconds: Optional[int] = None
+    views: int = 0
     created_at:  datetime
     uploader: Optional[UploaderInfo] = None
 
@@ -31,6 +32,7 @@ class VideoDetail(BaseModel):
     description: Optional[str] = None
     status: str
     duration_seconds: Optional[int] = None
+    views: int = 0
     created_at: datetime
     updated_at: Optional[datetime] = None
 

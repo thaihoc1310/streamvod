@@ -40,10 +40,6 @@ const WatchLaterPage = () => {
     }
   };
 
-  const handleVideoClick = (videoId) => {
-    navigate(`/watch/${videoId}`);
-  };
-
   if (loading) {
     return (
       <div className={styles.container}>
@@ -84,14 +80,7 @@ const WatchLaterPage = () => {
           {videos.map((video) => (
             <VideoCard
               key={video.id}
-              id={video.id}
-              title={video.title}
-              thumbnail={video.thumbnail_url}
-              duration={video.duration_seconds}
-              views="0"
-              uploadedAt={video.created_at}
-              channelName={video.uploader?.username || 'Unknown'}
-              onClick={() => handleVideoClick(video.id)}
+              video={video}
             />
           ))}
         </div>

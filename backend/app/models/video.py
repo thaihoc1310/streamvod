@@ -27,6 +27,7 @@ class Video(Base):
     thumbnail_url = Column(VARCHAR(2048))
 
     duration_seconds = Column(Integer)
+    views = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 

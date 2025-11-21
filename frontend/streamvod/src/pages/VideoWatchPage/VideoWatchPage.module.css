@@ -33,6 +33,14 @@
   font-size: 14px;
   color: #606060;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.views {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
 }
 
 .duration {

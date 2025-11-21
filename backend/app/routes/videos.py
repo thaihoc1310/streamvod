@@ -71,6 +71,7 @@ def list_videos(
                 thumbnail_url=v.thumbnail_url,
                 status=v.status,
                 duration_seconds=v.duration_seconds,
+                views=v.views,
                 created_at=v.created_at,
                 uploader=uploader_info
             ))
@@ -112,6 +113,12 @@ def get_video(
             detail="Video not found",
         )
 
+    # Increment view count
+    video.views += 1
+    db.add(video)
+    db.commit()
+    db.refresh(video)
+
     # Get uploader info
     uploader_info = None
     if video.uploader_id and video.uploader:
@@ -150,6 +157,7 @@ def get_video(
         description=video.description,
         status=video.status,
         duration_seconds=video.duration_seconds,
+        views=video.views,
         created_at=video.created_at,
         updated_at=video.updated_at,
         thumbnail_url=video.thumbnail_url,
@@ -228,6 +236,7 @@ def update_video(
             description=video.description,
             status=video.status,
             duration_seconds=video.duration_seconds,
+            views=video.views,
             created_at=video.created_at,
             updated_at=video.updated_at,
             thumbnail_url=video.thumbnail_url,

@@ -4,11 +4,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import styles from './VideoWatchPage.module.css';
 import HLSPlayer from '../../components/HLSPlayer/HLSPlayer';
 import { getVideoById } from '../../services/videoService';
-import { formatDuration, getTimeAgo } from '../../utils/formatters';
+import { formatDuration, getTimeAgo, formatViews } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, API_ENDPOINTS } from '../../config/api';
 import { getAuthHeaders } from '../../services/authService';
-import { FiThumbsUp, FiClock, FiUser } from 'react-icons/fi';
+import { FiThumbsUp, FiClock, FiUser, FiEye } from 'react-icons/fi';
 
 const VideoWatchPage = () => {
   const { id } = useParams();
@@ -159,6 +159,11 @@ const VideoWatchPage = () => {
         <h1 className={styles.videoTitle}>{video?.title || 'Không có tiêu đề'}</h1>
         
         <div className={styles.videoMeta}>
+          <span className={styles.views}>
+            <FiEye size={18} />
+            {video?.views !== undefined ? formatViews(video.views) : '0 lượt xem'}
+          </span>
+          <span className={styles.dot}>•</span>
           <span className={styles.duration}>
             {video?.duration_seconds ? formatDuration(video.duration_seconds) : ''}
           </span>
