@@ -33,11 +33,14 @@ const VideoPreviewCard = ({ thumbnail, duration, fileName, fileSize, status = 'p
     }
   };
 
+  // Convert thumbnail URL from video.th285.site to cfvideo.th285.site
+  const thumbnailUrl = thumbnail ? thumbnail.replace('video.th285.site', 'cfvideo.th285.site') : null;
+
   return (
     <div className={styles.previewCard}>
       <div className={styles.thumbnailContainer}>
-        {thumbnail ? (
-          <img src={thumbnail} alt="Video preview" className={styles.thumbnail} />
+        {thumbnailUrl ? (
+          <img src={thumbnailUrl} alt="Video preview" className={styles.thumbnail} />
         ) : (
           <div className={styles.thumbnailPlaceholder}>
             <FiLoader size={48} color="#999" className={styles.spinning} />
