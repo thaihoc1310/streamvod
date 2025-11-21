@@ -66,3 +66,6 @@ export const getTimeAgo = (date) => {
   if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} tháng trước`;
   return `${Math.floor(diffInSeconds / 31536000)} năm trước`;
 };
+
+// Alias for consistency
+export const formatTimeAgo = getTimeAgo;

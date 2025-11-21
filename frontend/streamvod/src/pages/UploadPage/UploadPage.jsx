@@ -11,6 +11,13 @@ import resolutionIcon from '../../assets/icons/qualityicon.svg';
 import ratioIcon from '../../assets/icons/bulbicon.svg';
 
 import { initiateVideoUpload, uploadVideoToS3 } from '../../services/videoService';
+import { 
+  isValidVideoFormat, 
+  isValidFileSize, 
+  getSupportedFormatsText,
+  MAX_FILE_SIZE 
+} from '../../utils/videoConstants';
+import { formatFileSize } from '../../utils/formatters';
 
 const UploadPage = () => {
   const navigate = useNavigate();
@@ -23,16 +30,15 @@ const UploadPage = () => {
       return;
     }
 
-    // Validate file type - chỉ cho phép MP4
-    if (file.type !== 'video/mp4' && !file.name.toLowerCase().endsWith('.mp4')) {
-      alert('Chỉ hỗ trợ file MP4. Vui lòng chọn file có định dạng .mp4');
+    // Validate file type
+    if (!isValidVideoFormat(file)) {
+      alert(`Định dạng video không được hỗ trợ. Vui lòng chọn file: ${getSupportedFormatsText()}`);
       return;
     }
 
-    // Validate file size (max 5GB = 5368709120 bytes)
-    const maxSize = 5 * 1024 * 1024 * 1024;
-    if (file.size > maxSize) {
-      alert('File vượt quá kích thước tối đa 5GB');
+    // Validate file size
+    if (!isValidFileSize(file)) {
+      alert(`File vượt quá kích thước tối đa ${formatFileSize(MAX_FILE_SIZE)}`);
       return;
     }
 
@@ -77,10 +83,10 @@ const UploadPage = () => {
             Kích thước tối đa: 5GB
           </UploadInfoItem>
           <UploadInfoItem icon={formatIcon} title="Định dạng tệp">
-            Chỉ hỗ trợ định dạng MP4 (.mp4)
+            Hỗ trợ: MP4, MOV, AVI, MKV, WebM, FLV, MPEG, 3GP, WMV, M4V
           </UploadInfoItem>
           <UploadInfoItem icon={resolutionIcon} title="Độ phân giải video">
-            Độ phân giải khuyến nghị: 480p, 720p, 1080p.
+            Độ phân giải khuyến nghị: 480p, 720p, 1080p, 4K.
           </UploadInfoItem>
           <UploadInfoItem icon={ratioIcon} title="Tỉ lệ khung hình">
             Khuyến nghị: 16:9 cho chế độ ngang, 9:16 cho chế độ dọc.

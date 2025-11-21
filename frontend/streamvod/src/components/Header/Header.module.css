@@ -47,6 +47,29 @@
 .searchContainer {
   position: relative;
   width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.searchButton {
+  position: absolute;
+  left: 0;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.searchIcon {
+  color: #606060;
+}
+
+.searchButton:hover .searchIcon {
+  color: #065fd4;
 }
 
 .searchInput {
@@ -62,14 +85,6 @@
   outline: none;
   border-color: #3ea6ff;
   box-shadow: 0 0 0 2px rgba(62, 166, 255, 0.3);
-}
-
-.searchIcon {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #606060;
 }
 
 .micButton {

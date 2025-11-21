@@ -48,7 +48,7 @@ const Dropzone = ({ onSelectFile, isUploading })  => {
       <input
         ref={fileInputRef}
         type="file"
-        accept="video/mp4,.mp4"
+        accept="video/mp4,video/quicktime,video/x-msvideo,video/x-matroska,video/webm,video/x-flv,video/mpeg,video/3gpp,video/x-ms-wmv,.mp4,.mov,.avi,.mkv,.webm,.flv,.mpeg,.mpg,.3gp,.wmv,.m4v"
         onChange={handleFileSelect}
         style={{ display: 'none' }}
         disabled={isUploading}
@@ -56,7 +56,12 @@ const Dropzone = ({ onSelectFile, isUploading })  => {
       
       <img src={uploadIcon} alt="Upload" className={styles.uploadIcon} />
       <h2>{isUploading ? 'Đang tải lên...' : 'Chọn video để tải lên'}</h2>
-      <p>{isUploading ? 'Vui lòng đợi' : 'Hoặc kéo và thả video vào đây'}</p>
+      <p className={styles.description}>
+        {isUploading ? 'Vui lòng đợi' : 'Hoặc kéo và thả video vào đây'}
+      </p>
+      <p className={styles.supportedFormats}>
+        Hỗ trợ: MP4, MOV, AVI, MKV, WebM, FLV, MPEG, 3GP, WMV, M4V
+      </p>
       <button 
         className={styles.uploadButton}
         onClick={handleClick}

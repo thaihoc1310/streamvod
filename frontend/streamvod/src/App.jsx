@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage/HomePage';
 import UploadPage from './pages/UploadPage/UploadPage';
 import UploadDetailsPage from './pages/UploadDetailsPage/UploadDetailsPage';
 import VideoWatchPage from './pages/VideoWatchPage/VideoWatchPage';
+import SearchResultsPage from './pages/SearchResultsPage/SearchResultsPage';
 
 const AppLayout = () => {
   const location = useLocation();
@@ -29,6 +30,7 @@ const AppLayout = () => {
       <Route path="/watch/:id" element={<VideoWatchPage />} />
       <Route path="/upload" element={<UploadPage />} />
       <Route path="/upload-details" element={<UploadDetailsPage />} />
+      <Route path="/search" element={<SearchResultsPage />} />
       </Routes >
       </main> 
     </div>

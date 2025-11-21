@@ -116,3 +116,27 @@ export const getVideos = async (page = 1, perPage = 10, query = null) => {
 
   return await response.json();
 };
+
+/**
+ * Search videos by query
+ * @param {string} query - Search query
+ * @returns {Promise<Array>}
+ */
+export const searchVideos = async (query) => {
+  const response = await fetch(
+    `${API_BASE_URL}${API_ENDPOINTS.VIDEOS}?q=${encodeURIComponent(query)}&per_page=50`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to search videos: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.videos || data.items || data; // Handle different response formats
+};
