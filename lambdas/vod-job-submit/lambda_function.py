@@ -26,7 +26,7 @@ def lambda_handler(event, context):
                 "OutputGroupSettings": {
                     "Type": "HLS_GROUP_SETTINGS",
                     "HlsGroupSettings": {
-                        "SegmentLength": 4,  # Giảm từ 6s xuống 4s để ABR học nhanh hơn
+                        "SegmentLength": 4, 
                         "MinSegmentLength": 0,
                         "Destination": f"{output_path}hls/{video_id}/",
                         "ManifestDurationFormat": "INTEGER",
@@ -48,10 +48,8 @@ def lambda_handler(event, context):
                                     "RateControlMode": "QVBR",
                                     "QualityTuningLevel": "SINGLE_PASS_HQ",
                                     "SceneChangeDetect": "TRANSITION_DETECTION",
-                                    "CodecProfile": "HIGH",
-                                    "CodecLevel": "LEVEL_4_1",
-                                    "GopSize": 2.0,
-                                    "GopSizeUnits": "SECONDS"
+                                    # "GopSize": 2.0,
+                                    # "GopSizeUnits": "SECONDS"
                                 }
                             }
                         },
@@ -82,10 +80,8 @@ def lambda_handler(event, context):
                                     "RateControlMode": "QVBR",
                                     "QualityTuningLevel": "SINGLE_PASS_HQ",
                                     "SceneChangeDetect": "TRANSITION_DETECTION",
-                                    "CodecProfile": "HIGH",
-                                    "CodecLevel": "LEVEL_4_0",
-                                    "GopSize": 2.0,
-                                    "GopSizeUnits": "SECONDS"
+                                    # "GopSize": 2.0,
+                                    # "GopSizeUnits": "SECONDS"
                                 }
                             }
                         },
@@ -114,12 +110,10 @@ def lambda_handler(event, context):
                                 "H264Settings": {
                                     "MaxBitrate": 1200000, 
                                     "RateControlMode": "QVBR",
-                                    "QualityTuningLevel": "SINGLE_PASS_HQ",
+                                    "QualityTuningLevel": "SINGLE_PASS",
                                     "SceneChangeDetect": "TRANSITION_DETECTION",
-                                    "CodecProfile": "MAIN",
-                                    "CodecLevel": "LEVEL_3_1",
-                                    "GopSize": 2.0,
-                                    "GopSizeUnits": "SECONDS"
+                                    # "GopSize": 2.0,
+                                    # "GopSizeUnits": "SECONDS"
                                 }
                             }
                         },
