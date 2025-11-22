@@ -2,6 +2,11 @@ import json
 import boto3
 from botocore.config import Config
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+SOURCE_BUCKET = os.environ.get("OUTPUT_BUCKET", "streamvod-output")
+DEST_BUCKET = os.environ.get("OSS_OUTPUT_BUCKET", "streamvod-output-oss")
+OSS_REGION = os.environ.get("OSS_REGION", "cn-hongkong")
 
 def lambda_handler(event, context):
     """
@@ -66,137 +71,166 @@ def lambda_handler(event, context):
         })
     }
 
+def list_all_objects(s3_client, bucket, prefix):
+    """
+    List ALL objects under a prefix, with pagination.
+    Return: list of dict objects like in Contents.
+    """
+    objects = []
+    continuation_token = None
+
+    while True:
+        params = {
+            "Bucket": bucket,
+            "Prefix": prefix,
+        }
+        if continuation_token:
+            params["ContinuationToken"] = continuation_token
+
+        resp = s3_client.list_objects_v2(**params)
+        contents = resp.get("Contents", [])
+        objects.extend(contents)
+
+        if resp.get("IsTruncated"):
+            continuation_token = resp.get("NextContinuationToken")
+        else:
+            break
+
+    return objects
+
 
 def sync_to_oss(video_id):
     """
-    Sync video files from S3 to Alibaba OSS
-    
-    Args:
-        video_id: Video identifier
-        
-    Returns:
-        dict: Sync statistics
+    Sync video files from S3 to Alibaba OSS (S3-compatible).
+    - Copy HLS: hls/{video_id}/...
+    - Copy thumbnails: thumbs/{video_id}_...
+
+    Use multi-thread to speed up.
     """
-    
-    from botocore.client import Config
-    
-    # ======= OSS-compatible configuration =======
+
+    # ======= Config OSS client (S3-compatible) =======
     oss_config = Config(
-        signature_version='s3',  # Use S3 signature v2
+        signature_version="s3",
         s3={
-            'addressing_style': 'virtual',
-            'payload_signing_enabled': False
-        }
+            "addressing_style": "virtual",
+            "payload_signing_enabled": False,
+        },
     )
-    
-    # Initialize OSS client (S3-compatible API)
+
+    # S3 client (AWS)
+    s3 = boto3.client("s3")
+
+    # OSS client (Alibaba, use S3 API)
     oss = boto3.client(
-        's3',
+        "s3",
         endpoint_url=f"https://{os.environ['OSS_ENDPOINT']}",
-        aws_access_key_id=os.environ['OSS_ACCESS_KEY_ID'],
-        aws_secret_access_key=os.environ['OSS_ACCESS_KEY_SECRET'],
-        region_name='cn-hongkong',
-        config=oss_config
+        aws_access_key_id=os.environ["OSS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["OSS_ACCESS_KEY_SECRET"],
+        region_name=OSS_REGION,
+        config=oss_config,
     )
-    
-    # Initialize S3 client
-    s3 = boto3.client('s3')
-    
+
     synced_files = 0
     failed_files = 0
     total_bytes = 0
-    
+
     try:
-        # === Sync HLS files ===
-        print(f"Syncing HLS files for video {video_id}")
-        
-        hls_response = s3.list_objects_v2(
-            Bucket='streamvod-output',
-            Prefix=f'hls/{video_id}/'
-        )
-        
-        hls_files = hls_response.get('Contents', [])
-        print(f"Found {len(hls_files)} HLS files to sync")
-        
-        for obj in hls_files:
-            key = obj['Key']
-            
+        # === 1) List HLS files ===
+        hls_prefix = f"hls/{video_id}/"
+        print(f"[HLS] Listing objects in s3://{SOURCE_BUCKET}/{hls_prefix}")
+
+        hls_files = list_all_objects(s3, SOURCE_BUCKET, hls_prefix)
+        print(f"[HLS] Found {len(hls_files)} objects to sync")
+
+        # === 2) List thumbnail files ===
+        thumbs_prefix = f"thumbs/{video_id}_"
+        print(f"[THUMB] Listing objects in s3://{SOURCE_BUCKET}/{thumbs_prefix}")
+
+        thumb_files = list_all_objects(s3, SOURCE_BUCKET, thumbs_prefix)
+        print(f"[THUMB] Found {len(thumb_files)} objects to sync")
+
+        # Merge all files to sync: (kind, key)
+        all_files = [("hls", obj["Key"]) for obj in hls_files] + \
+                    [("thumb", obj["Key"]) for obj in thumb_files]
+
+        print(f"[SYNC] Total files to sync for video {video_id}: {len(all_files)}")
+
+        if not all_files:
+            print("[SYNC] No files to sync, returning")
+            return {
+                "synced_files": 0,
+                "failed_files": 0,
+                "total_bytes": 0,
+                "success": True,
+            }
+
+        # === 3) Function to sync 1 single file ===
+        def sync_one(kind, key):
             try:
                 # Download from S3
-                s3_obj = s3.get_object(Bucket='streamvod-output', Key=key)
-                file_content = s3_obj['Body'].read()
-                content_type = s3_obj.get('ContentType', 'application/octet-stream')
-                
+                s3_obj = s3.get_object(Bucket=SOURCE_BUCKET, Key=key)
+                body = s3_obj["Body"].read()
+
+                if kind == "hls":
+                    content_type = s3_obj.get("ContentType", "application/octet-stream")
+                else:
+                    # Thumbnail
+                    content_type = "image/jpeg"
+
                 # Upload to OSS
                 oss.put_object(
-                    Bucket='streamvod-output-oss',
+                    Bucket=DEST_BUCKET,
                     Key=key,
-                    Body=file_content,
-                    ContentType=content_type
+                    Body=body,
+                    ContentType=content_type,
                 )
-                
-                synced_files += 1
-                total_bytes += len(file_content)
-                print(f"✓ Synced: {key} ({len(file_content)} bytes)")
-                
+
+                size = len(body)
+                print(f"✓ Synced: {key} ({size} bytes)")
+                return True, size
+
             except Exception as e:
-                failed_files += 1
-                print(f"✗ Failed to sync {key}: {str(e)}")
-        
-        # === Sync Thumbnail files ===
-        print(f"Syncing thumbnails for video {video_id}")
-        
-        thumb_response = s3.list_objects_v2(
-            Bucket='streamvod-output',
-            Prefix=f'thumbs/{video_id}_'
-        )
-        
-        thumb_files = thumb_response.get('Contents', [])
-        print(f"Found {len(thumb_files)} thumbnail files to sync")
-        
-        for obj in thumb_files:
-            key = obj['Key']
-            
-            try:
-                # Download from S3
-                s3_obj = s3.get_object(Bucket='streamvod-output', Key=key)
-                file_content = s3_obj['Body'].read()
-                
-                # Upload to OSS
-                oss.put_object(
-                    Bucket='streamvod-output-oss',
-                    Key=key,
-                    Body=file_content,
-                    ContentType='image/jpeg'
-                )
-                
-                synced_files += 1
-                total_bytes += len(file_content)
-                print(f"✓ Synced: {key} ({len(file_content)} bytes)")
-                
-            except Exception as e:
-                failed_files += 1
-                print(f"✗ Failed to sync {key}: {str(e)}")
-        
-        # Summary
+                print(f"✗ Failed to sync {key}: {e}")
+                return False, 0
+
+        # === 4) Run sync in parallel ===
+        max_workers = int(os.environ.get("SYNC_MAX_WORKERS", "8"))
+        print(f"[SYNC] Using ThreadPoolExecutor with max_workers={max_workers}")
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [
+                executor.submit(sync_one, kind, key)
+                for kind, key in all_files
+            ]
+
+            for fut in as_completed(futures):
+                ok, size = fut.result()
+                if ok:
+                    synced_files += 1
+                    total_bytes += size
+                else:
+                    failed_files += 1
+
+        # === 5) Summary ===
         print(f"=== Sync Summary for video {video_id} ===")
-        print(f"Total synced: {synced_files} files")
-        print(f"Total size: {total_bytes / (1024*1024):.2f} MB")
-        print(f"Failed: {failed_files} files")
-        
+        print(f"Total synced : {synced_files} files")
+        print(f"Total size   : {total_bytes / (1024 * 1024):.2f} MB")
+        print(f"Failed       : {failed_files} files")
+
         return {
-            'synced_files': synced_files,
-            'failed_files': failed_files,
-            'total_bytes': total_bytes,
-            'success': failed_files == 0
+            "synced_files": synced_files,
+            "failed_files": failed_files,
+            "total_bytes": total_bytes,
+            "success": failed_files == 0,
         }
-        
+
     except Exception as e:
-        error_msg = f"Error syncing video {video_id}: {str(e)}"
+        error_msg = f"Error syncing video {video_id}: {e}"
         print(error_msg)
         return {
-            'synced_files': synced_files,
-            'failed_files': failed_files,
-            'error': str(e),
-            'success': False
+            "synced_files": synced_files,
+            "failed_files": failed_files,
+            "total_bytes": total_bytes,
+            "error": str(e),
+            "success": False,
         }

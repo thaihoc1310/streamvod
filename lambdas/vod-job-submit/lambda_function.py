@@ -18,7 +18,7 @@ def lambda_handler(event, context):
     input_path = f"s3://{bucket}/{key}"
     output_path = f"s3://{os.environ['OUTPUT_BUCKET']}/"
     
-    # ======= UPDATED: ABR với 3 quality levels =======
+    # ======= UPDATED: ABR with 3 quality levels =======
     job_settings = {
         "OutputGroups": [
             {
@@ -78,7 +78,7 @@ def lambda_handler(event, context):
                                 "H264Settings": {
                                     "MaxBitrate": 2200000,  
                                     "RateControlMode": "QVBR",
-                                    "QualityTuningLevel": "SINGLE_PASS_HQ",
+                                    "QualityTuningLevel": "SINGLE_PASS",
                                     "SceneChangeDetect": "TRANSITION_DETECTION",
                                     # "GopSize": 2.0,
                                     # "GopSizeUnits": "SECONDS"
@@ -111,7 +111,7 @@ def lambda_handler(event, context):
                                     "MaxBitrate": 1200000, 
                                     "RateControlMode": "QVBR",
                                     "QualityTuningLevel": "SINGLE_PASS",
-                                    "SceneChangeDetect": "TRANSITION_DETECTION",
+                                    "SceneChangeDetect": "DISABLED",
                                     # "GopSize": 2.0,
                                     # "GopSizeUnits": "SECONDS"
                                 }
