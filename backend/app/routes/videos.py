@@ -1,10 +1,14 @@
 import math
 from typing import Optional
 import uuid
+import logging
 
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy import func, select, or_
 from sqlalchemy.orm import Session
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 from app.schemas.video import (
     VideoCreate,
@@ -317,6 +321,9 @@ def initiate_multipart_video_upload(
     """
     vid = str(uuid.uuid4())
     s3_source_key = f"uploads/{vid}.mp4"
+    
+    logger.info(f"[API] Multipart initiate request from user: {current_user.id}")
+    logger.info(f"[API] Generated video_id: {vid}, s3_key: {s3_source_key}")
 
     # Tạo video record trong DB
     video = Video(
@@ -330,12 +337,15 @@ def initiate_multipart_video_upload(
     )
     db.add(video)
     db.commit()
+    logger.info(f"[API] Video record created in DB")
 
     try:
         # Khởi tạo multipart upload trên S3
         result = initiate_multipart_upload(s3_source_key, content_type="video/mp4")
         upload_id = result['upload_id']
+        logger.info(f"[API] Multipart upload initiated. upload_id: {upload_id}")
     except Exception as e:
+        logger.error(f"[API] Failed to initiate multipart upload: {str(e)}", exc_info=True)
         db.delete(video)
         db.commit()
         raise HTTPException(
@@ -358,12 +368,17 @@ def get_multipart_upload_urls(
     """
     Generate presigned URLs cho từng part (hỗ trợ Transfer Acceleration)
     """
+    logger.info(f"[API] Get URLs request from user: {current_user.id}")
+    logger.info(f"[API] video_id: {request.video_id}, upload_id: {request.upload_id}, num_parts: {request.num_parts}")
+    
     # Verify video belongs to current user
     video = db.query(Video).filter(Video.id == request.video_id).first()
     if not video:
+        logger.error(f"[API] Video not found: {request.video_id}")
         raise HTTPException(status_code=404, detail="Video not found")
     
     if video.uploader_id != current_user.id:
+        logger.error(f"[API] Unauthorized access attempt by user {current_user.id} to video {request.video_id}")
         raise HTTPException(status_code=403, detail="Not authorized")
 
     try:
@@ -373,7 +388,9 @@ def get_multipart_upload_urls(
             request.upload_id,
             request.num_parts
         )
+        logger.info(f"[API] Generated {len(urls)} presigned URLs successfully")
     except Exception as e:
+        logger.error(f"[API] Failed to generate presigned URLs: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to generate presigned URLs: {str(e)}"
@@ -392,12 +409,18 @@ def complete_multipart_video_upload(
     """
     Hoàn thành multipart upload
     """
+    logger.info(f"[API] Complete request from user: {current_user.id}")
+    logger.info(f"[API] video_id: {request.video_id}, upload_id: {request.upload_id}")
+    logger.info(f"[API] Number of parts to complete: {len(request.parts)}")
+    
     # Verify video belongs to current user
     video = db.query(Video).filter(Video.id == request.video_id).first()
     if not video:
+        logger.error(f"[API] Video not found: {request.video_id}")
         raise HTTPException(status_code=404, detail="Video not found")
     
     if video.uploader_id != current_user.id:
+        logger.error(f"[API] Unauthorized access attempt by user {current_user.id} to video {request.video_id}")
         raise HTTPException(status_code=403, detail="Not authorized")
 
     try:
@@ -410,17 +433,25 @@ def complete_multipart_video_upload(
             for part in request.parts
         ]
         
+        logger.info(f"[API] Completing multipart upload with {len(parts_data)} parts")
+        
         complete_multipart_upload(
             video.s3_source_key,
             request.upload_id,
             parts_data
         )
+        
+        logger.info(f"[API] Multipart upload completed successfully for video {request.video_id}")
+        
     except Exception as e:
+        logger.error(f"[API] Failed to complete multipart upload: {str(e)}", exc_info=True)
+        
         # Nếu complete fail, có thể abort upload để cleanup
         try:
+            logger.info(f"[API] Attempting to abort upload for cleanup")
             abort_multipart_upload(video.s3_source_key, request.upload_id)
-        except:
-            pass
+        except Exception as abort_error:
+            logger.error(f"[API] Failed to abort upload: {str(abort_error)}")
         
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
