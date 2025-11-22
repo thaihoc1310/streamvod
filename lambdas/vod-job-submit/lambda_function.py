@@ -3,20 +3,22 @@ import boto3
 import os
 import urllib.parse
 
+
 mediaconvert = boto3.client('mediaconvert', endpoint_url=os.environ['MEDIACONVERT_ENDPOINT'])
+
 
 def lambda_handler(event, context):
     # Parse S3 event
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'])
     
-    # Extract video_id from key: uploads/<video_id>.mp4
-    video_id = key.split('/')[-1].replace('.mp4', '')
+    filename = key.split('/')[-1]
+    video_id = os.path.splitext(filename)[0]
     
     input_path = f"s3://{bucket}/{key}"
     output_path = f"s3://{os.environ['OUTPUT_BUCKET']}/"
     
-    # MediaConvert job settings
+    # ======= UPDATED: ABR với 3 quality levels =======
     job_settings = {
         "OutputGroups": [
             {
@@ -28,21 +30,35 @@ def lambda_handler(event, context):
                         "MinSegmentLength": 0,
                         "Destination": f"{output_path}hls/{video_id}/",
                         "ManifestDurationFormat": "INTEGER",
-                        "SegmentControl": "SEGMENTED_FILES"
+                        "SegmentControl": "SEGMENTED_FILES",
+                        # "ManifestCompression": "NONE",
+                        # "CodecSpecification": "RFC_4281",
+                        # "OutputSelection": "MANIFESTS_AND_SEGMENTS",
+                        # "TimestampDeltaMilliseconds": 0,
+                        # "ProgramDateTime": "EXCLUDE",
+                        "DirectoryStructure": "SINGLE_DIRECTORY"
                     }
                 },
                 "Outputs": [
+                    # ===== Output 1: 1080p (5 Mbps) =====
                     {
                         "ContainerSettings": {"Container": "M3U8"},
                         "VideoDescription": {
+                            "Width": 1920,
+                            "Height": 1080,
                             "CodecSettings": {
                                 "Codec": "H_264",
                                 "H264Settings": {
                                     "MaxBitrate": 5000000,
                                     "RateControlMode": "QVBR",
-                                    "SceneChangeDetect": "TRANSITION_DETECTION"
+                                    # "QualityTuningLevel": "SINGLE_PASS_HQ",
+                                    "SceneChangeDetect": "TRANSITION_DETECTION",
+                                    # "FramerateControl": "INITIALIZE_FROM_SOURCE",
+                                    # "GopSize": 2.0,
+                                    # "GopSizeUnits": "SECONDS"
                                 }
-                            }
+                            },
+                            # "ScalingBehavior": "DEFAULT"
                         },
                         "AudioDescriptions": [
                             {
@@ -56,10 +72,79 @@ def lambda_handler(event, context):
                                 }
                             }
                         ],
-                        "NameModifier": "_hls"
+                        "NameModifier": "_1080p"
+                    },
+                    # ===== Output 2: 720p (2.8 Mbps) =====
+                    {
+                        "ContainerSettings": {"Container": "M3U8"},
+                        "VideoDescription": {
+                            "Width": 1280,
+                            "Height": 720,
+                            "CodecSettings": {
+                                "Codec": "H_264",
+                                "H264Settings": {
+                                    "MaxBitrate": 2800000,
+                                    "RateControlMode": "QVBR",
+                                    # "QualityTuningLevel": "SINGLE_PASS_HQ",
+                                    "SceneChangeDetect": "TRANSITION_DETECTION",
+                                    # "FramerateControl": "INITIALIZE_FROM_SOURCE",
+                                    # "GopSize": 2.0,
+                                    # "GopSizeUnits": "SECONDS"
+                                }
+                            },
+                            # "ScalingBehavior": "DEFAULT"
+                        },
+                        "AudioDescriptions": [
+                            {
+                                "CodecSettings": {
+                                    "Codec": "AAC",
+                                    "AacSettings": {
+                                        "Bitrate": 96000,
+                                        "CodingMode": "CODING_MODE_2_0",
+                                        "SampleRate": 48000
+                                    }
+                                }
+                            }
+                        ],
+                        "NameModifier": "_720p"
+                    },
+                    # ===== Output 3: 360p (800 kbps) =====
+                    {
+                        "ContainerSettings": {"Container": "M3U8"},
+                        "VideoDescription": {
+                            "Width": 640,
+                            "Height": 360,
+                            "CodecSettings": {
+                                "Codec": "H_264",
+                                "H264Settings": {
+                                    "MaxBitrate": 800000,
+                                    "RateControlMode": "QVBR",
+                                    # "QualityTuningLevel": "SINGLE_PASS",
+                                    "SceneChangeDetect": "TRANSITION_DETECTION",
+                                    # "FramerateControl": "INITIALIZE_FROM_SOURCE",
+                                    # "GopSize": 2.0,
+                                    # "GopSizeUnits": "SECONDS"
+                                }
+                            },
+                            # "ScalingBehavior": "DEFAULT"
+                        },
+                        "AudioDescriptions": [
+                            {
+                                "CodecSettings": {
+                                    "Codec": "AAC",
+                                    "AacSettings": {
+                                        "Bitrate": 96000,
+                                        "CodingMode": "CODING_MODE_2_0",
+                                        "SampleRate": 48000
+                                    }
+                                }
+                            }
+                        ],
+                        "NameModifier": "_360p"
                     }
                 ]
             },
+            # ===== Thumbnail Output (unchanged) =====
             {
                 "Name": "Thumbnail Group",
                 "OutputGroupSettings": {
@@ -107,8 +192,13 @@ def lambda_handler(event, context):
     )
     
     print(f"MediaConvert job created: {response['Job']['Id']}")
+    print(f"Output qualities: 1080p, 720p, 360p")
     
     return {
         'statusCode': 200,
-        'body': json.dumps({'jobId': response['Job']['Id']})
+        'body': json.dumps({
+            'jobId': response['Job']['Id'],
+            'video_id': video_id,
+            'qualities': ['1080p', '720p', '360p']
+        })
     }

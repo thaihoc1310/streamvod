@@ -99,12 +99,10 @@ export const getMultipartUploadUrls = async (videoId, uploadId, numParts) => {
  * @returns {Promise<string>} - ETag of uploaded part
  */
 const uploadPart = async (url, partData) => {
+  // Don't add Content-Type header - presigned URL is signed without it
   const response = await fetch(url, {
     method: 'PUT',
     body: partData,
-    headers: {
-      'Content-Type': 'application/octet-stream',
-    },
   });
 
   if (!response.ok) {
