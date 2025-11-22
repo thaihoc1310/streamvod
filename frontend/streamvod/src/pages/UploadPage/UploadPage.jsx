@@ -23,6 +23,7 @@ const UploadPage = () => {
   const navigate = useNavigate();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
 
   const handleSelectFile = async (file) => {
     if (!file) {
@@ -44,12 +45,20 @@ const UploadPage = () => {
 
     setIsUploading(true);
     setUploadError(null);
+    setUploadProgress({ completed: 0, total: 0 });
 
     try {
       console.log('Đang upload video với multipart + Transfer Acceleration...');
       
-      // Upload using multipart upload (hỗ trợ Transfer Acceleration)
-      const video_id = await uploadVideoMultipart(file);
+      // Upload using multipart upload with parallel uploads (max 5 concurrent)
+      const video_id = await uploadVideoMultipart(
+        file, 
+        (completedParts, totalParts) => {
+          setUploadProgress({ completed: completedParts, total: totalParts });
+          console.log(`Progress: ${completedParts}/${totalParts} parts uploaded`);
+        },
+        5 // Max 5 concurrent uploads
+      );
       
       console.log('Upload thành công! Video ID:', video_id);
       console.log('Chuyển sang trang upload-details');
@@ -69,6 +78,7 @@ const UploadPage = () => {
       alert(`Lỗi upload: ${error.message}`);
     } finally {
       setIsUploading(false);
+      setUploadProgress({ completed: 0, total: 0 });
     }
   };
   return (
@@ -79,9 +89,25 @@ const UploadPage = () => {
           isUploading={isUploading}
         />
 
+        {/* Upload Progress */}
+        {isUploading && uploadProgress.total > 0 && (
+          <div className={styles.progressContainer}>
+            <div className={styles.progressInfo}>
+              <span>Đang upload: {uploadProgress.completed}/{uploadProgress.total} parts</span>
+              <span>{Math.round((uploadProgress.completed / uploadProgress.total) * 100)}%</span>
+            </div>
+            <div className={styles.progressBar}>
+              <div 
+                className={styles.progressFill}
+                style={{ width: `${(uploadProgress.completed / uploadProgress.total) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         <div className={styles.infoGrid}>
           <UploadInfoItem icon={sizeIcon} title="Kích thước">
-            Kích thước tối đa: 100GB (hỗ trợ multipart upload)
+            Kích thước tối đa: 100GB (hỗ trợ multipart upload song song)
           </UploadInfoItem>
           <UploadInfoItem icon={formatIcon} title="Định dạng tệp">
             Hỗ trợ: MP4, MOV, AVI, MKV, WebM, FLV, MPEG, 3GP, WMV, M4V

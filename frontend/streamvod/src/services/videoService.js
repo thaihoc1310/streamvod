@@ -96,9 +96,10 @@ export const getMultipartUploadUrls = async (videoId, uploadId, numParts) => {
  * Upload a single part to S3
  * @param {string} url - Presigned URL
  * @param {Blob} partData - Part data
+ * @param {Function} onProgress - Optional progress callback
  * @returns {Promise<string>} - ETag of uploaded part
  */
-const uploadPart = async (url, partData) => {
+const uploadPart = async (url, partData, onProgress = null) => {
   // Don't add Content-Type header - presigned URL is signed without it
   const response = await fetch(url, {
     method: 'PUT',
@@ -113,6 +114,11 @@ const uploadPart = async (url, partData) => {
   const etag = response.headers.get('ETag');
   if (!etag) {
     throw new Error('No ETag returned from S3');
+  }
+
+  // Call progress callback if provided
+  if (onProgress) {
+    onProgress();
   }
 
   return etag;
@@ -146,9 +152,11 @@ export const completeMultipartUpload = async (videoId, uploadId, parts) => {
 /**
  * Upload video using multipart upload with Transfer Acceleration
  * @param {File} file - Video file to upload
+ * @param {Function} onProgress - Optional progress callback (uploadedParts, totalParts)
+ * @param {number} maxConcurrent - Maximum concurrent uploads (default: 5)
  * @returns {Promise<string>} - video_id
  */
-export const uploadVideoMultipart = async (file) => {
+export const uploadVideoMultipart = async (file, onProgress = null, maxConcurrent = 5) => {
   // Step 1: Initiate multipart upload
   const { video_id, upload_id, key } = await initiateMultipartUpload();
   
@@ -158,9 +166,12 @@ export const uploadVideoMultipart = async (file) => {
   // Step 3: Get presigned URLs for all parts
   const { parts: urlParts } = await getMultipartUploadUrls(video_id, upload_id, numParts);
   
-  // Step 4: Upload all parts
+  // Step 4: Upload all parts in parallel with concurrency limit
   const uploadedParts = [];
+  let completedParts = 0;
   
+  // Create upload tasks for all parts
+  const uploadTasks = [];
   for (let i = 0; i < numParts; i++) {
     const start = i * PART_SIZE;
     const end = Math.min(start + PART_SIZE, file.size);
@@ -171,16 +182,52 @@ export const uploadVideoMultipart = async (file) => {
       throw new Error(`No URL for part ${i + 1}`);
     }
     
-    const etag = await uploadPart(urlPart.url, partData);
-    
-    uploadedParts.push({
-      PartNumber: i + 1,
-      ETag: etag,
+    uploadTasks.push({
+      partNumber: i + 1,
+      url: urlPart.url,
+      data: partData,
     });
   }
   
+  // Upload parts with concurrency control
+  const uploadWithConcurrency = async (tasks) => {
+    const results = [];
+    const executing = [];
+    
+    for (const task of tasks) {
+      const promise = uploadPart(task.url, task.data, () => {
+        completedParts++;
+        if (onProgress) {
+          onProgress(completedParts, numParts);
+        }
+      }).then(etag => ({
+        PartNumber: task.partNumber,
+        ETag: etag,
+      }));
+      
+      results.push(promise);
+      
+      if (maxConcurrent <= tasks.length) {
+        const e = promise.then(() => executing.splice(executing.indexOf(e), 1));
+        executing.push(e);
+        
+        if (executing.length >= maxConcurrent) {
+          await Promise.race(executing);
+        }
+      }
+    }
+    
+    return Promise.all(results);
+  };
+  
+  // Execute uploads
+  const parts = await uploadWithConcurrency(uploadTasks);
+  
+  // Sort parts by PartNumber (S3 requires parts to be in order)
+  parts.sort((a, b) => a.PartNumber - b.PartNumber);
+  
   // Step 5: Complete multipart upload
-  await completeMultipartUpload(video_id, upload_id, uploadedParts);
+  await completeMultipartUpload(video_id, upload_id, parts);
   
   return video_id;
 };
