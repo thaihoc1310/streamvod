@@ -26,21 +26,16 @@ def lambda_handler(event, context):
                 "OutputGroupSettings": {
                     "Type": "HLS_GROUP_SETTINGS",
                     "HlsGroupSettings": {
-                        "SegmentLength": 6,
+                        "SegmentLength": 4,  # Giảm từ 6s xuống 4s để ABR học nhanh hơn
                         "MinSegmentLength": 0,
                         "Destination": f"{output_path}hls/{video_id}/",
                         "ManifestDurationFormat": "INTEGER",
                         "SegmentControl": "SEGMENTED_FILES",
-                        # "ManifestCompression": "NONE",
-                        # "CodecSpecification": "RFC_4281",
-                        # "OutputSelection": "MANIFESTS_AND_SEGMENTS",
-                        # "TimestampDeltaMilliseconds": 0,
-                        # "ProgramDateTime": "EXCLUDE",
                         "DirectoryStructure": "SINGLE_DIRECTORY"
                     }
                 },
                 "Outputs": [
-                    # ===== Output 1: 1080p (5 Mbps) =====
+                    # ===== Output 1: 1080p (4 Mbps) =====
                     {
                         "ContainerSettings": {"Container": "M3U8"},
                         "VideoDescription": {
@@ -49,23 +44,23 @@ def lambda_handler(event, context):
                             "CodecSettings": {
                                 "Codec": "H_264",
                                 "H264Settings": {
-                                    "MaxBitrate": 5000000,
+                                    "MaxBitrate": 4000000,  
                                     "RateControlMode": "QVBR",
-                                    # "QualityTuningLevel": "SINGLE_PASS_HQ",
+                                    "QualityTuningLevel": "SINGLE_PASS_HQ",
                                     "SceneChangeDetect": "TRANSITION_DETECTION",
-                                    # "FramerateControl": "INITIALIZE_FROM_SOURCE",
-                                    # "GopSize": 2.0,
-                                    # "GopSizeUnits": "SECONDS"
+                                    "CodecProfile": "HIGH",
+                                    "CodecLevel": "LEVEL_4_1",
+                                    "GopSize": 2.0,
+                                    "GopSizeUnits": "SECONDS"
                                 }
-                            },
-                            # "ScalingBehavior": "DEFAULT"
+                            }
                         },
                         "AudioDescriptions": [
                             {
                                 "CodecSettings": {
                                     "Codec": "AAC",
                                     "AacSettings": {
-                                        "Bitrate": 96000,
+                                        "Bitrate": 128000,  
                                         "CodingMode": "CODING_MODE_2_0",
                                         "SampleRate": 48000
                                     }
@@ -74,7 +69,7 @@ def lambda_handler(event, context):
                         ],
                         "NameModifier": "_1080p"
                     },
-                    # ===== Output 2: 720p (2.8 Mbps) =====
+                    # ===== Output 2: 720p (2.2 Mbps) =====
                     {
                         "ContainerSettings": {"Container": "M3U8"},
                         "VideoDescription": {
@@ -83,16 +78,16 @@ def lambda_handler(event, context):
                             "CodecSettings": {
                                 "Codec": "H_264",
                                 "H264Settings": {
-                                    "MaxBitrate": 2800000,
+                                    "MaxBitrate": 2200000,  
                                     "RateControlMode": "QVBR",
-                                    # "QualityTuningLevel": "SINGLE_PASS_HQ",
+                                    "QualityTuningLevel": "SINGLE_PASS_HQ",
                                     "SceneChangeDetect": "TRANSITION_DETECTION",
-                                    # "FramerateControl": "INITIALIZE_FROM_SOURCE",
-                                    # "GopSize": 2.0,
-                                    # "GopSizeUnits": "SECONDS"
+                                    "CodecProfile": "HIGH",
+                                    "CodecLevel": "LEVEL_4_0",
+                                    "GopSize": 2.0,
+                                    "GopSizeUnits": "SECONDS"
                                 }
-                            },
-                            # "ScalingBehavior": "DEFAULT"
+                            }
                         },
                         "AudioDescriptions": [
                             {
@@ -108,7 +103,7 @@ def lambda_handler(event, context):
                         ],
                         "NameModifier": "_720p"
                     },
-                    # ===== Output 3: 360p (800 kbps) =====
+                    # ===== Output 3: 360p (1.2 Mbps) =====
                     {
                         "ContainerSettings": {"Container": "M3U8"},
                         "VideoDescription": {
@@ -117,16 +112,16 @@ def lambda_handler(event, context):
                             "CodecSettings": {
                                 "Codec": "H_264",
                                 "H264Settings": {
-                                    "MaxBitrate": 800000,
+                                    "MaxBitrate": 1200000, 
                                     "RateControlMode": "QVBR",
-                                    # "QualityTuningLevel": "SINGLE_PASS",
+                                    "QualityTuningLevel": "SINGLE_PASS_HQ",
                                     "SceneChangeDetect": "TRANSITION_DETECTION",
-                                    # "FramerateControl": "INITIALIZE_FROM_SOURCE",
-                                    # "GopSize": 2.0,
-                                    # "GopSizeUnits": "SECONDS"
+                                    "CodecProfile": "MAIN",
+                                    "CodecLevel": "LEVEL_3_1",
+                                    "GopSize": 2.0,
+                                    "GopSizeUnits": "SECONDS"
                                 }
-                            },
-                            # "ScalingBehavior": "DEFAULT"
+                            }
                         },
                         "AudioDescriptions": [
                             {
@@ -192,13 +187,15 @@ def lambda_handler(event, context):
     )
     
     print(f"MediaConvert job created: {response['Job']['Id']}")
-    print(f"Output qualities: 1080p, 720p, 360p")
+    print(f"Output qualities: 1080p (4Mbps), 720p (2.2Mbps), 360p (1.2Mbps)")
+    print(f"Segment length: 4 seconds (optimized for faster ABR)")
     
     return {
         'statusCode': 200,
         'body': json.dumps({
             'jobId': response['Job']['Id'],
             'video_id': video_id,
-            'qualities': ['1080p', '720p', '360p']
+            'qualities': ['1080p', '720p', '360p'],
+            'bitrates': ['4Mbps', '2.2Mbps', '1.2Mbps']
         })
     }
