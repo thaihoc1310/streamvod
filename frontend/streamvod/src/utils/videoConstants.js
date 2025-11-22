@@ -44,9 +44,11 @@ export const SUPPORTED_VIDEO_FORMATS = {
 };
 
 /**
- * Maximum file size for upload (5GB)
+ * Maximum file size for upload with multipart (5TB)
+ * Note: Multipart upload with S3 Transfer Acceleration supports up to 5TB
+ * For practical purposes, we set a reasonable limit
  */
-export const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB in bytes
+export const MAX_FILE_SIZE = 100 * 1024 * 1024 * 1024; // 100GB in bytes (practical limit)
 
 /**
  * Get display name for video format

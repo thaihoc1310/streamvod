@@ -46,6 +46,147 @@ export const uploadVideoToS3 = async (file, presignedData) => {
   }
 };
 
+// ===== MULTIPART UPLOAD (with Transfer Acceleration) =====
+
+const PART_SIZE = 10 * 1024 * 1024; // 10MB per part
+
+/**
+ * Initiate multipart upload
+ * @returns {Promise<{video_id: string, upload_id: string, key: string}>}
+ */
+export const initiateMultipartUpload = async () => {
+  const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MULTIPART_INITIATE}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to initiate multipart upload: ${response.statusText}`);
+  }
+
+  return await response.json();
+};
+
+/**
+ * Get presigned URLs for multipart upload
+ * @param {string} videoId
+ * @param {string} uploadId
+ * @param {number} numParts
+ * @returns {Promise<{parts: Array<{part_number: number, url: string}>}>}
+ */
+export const getMultipartUploadUrls = async (videoId, uploadId, numParts) => {
+  const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MULTIPART_GET_URLS}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      video_id: videoId,
+      upload_id: uploadId,
+      num_parts: numParts,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get upload URLs: ${response.statusText}`);
+  }
+
+  return await response.json();
+};
+
+/**
+ * Upload a single part to S3
+ * @param {string} url - Presigned URL
+ * @param {Blob} partData - Part data
+ * @returns {Promise<string>} - ETag of uploaded part
+ */
+const uploadPart = async (url, partData) => {
+  const response = await fetch(url, {
+    method: 'PUT',
+    body: partData,
+    headers: {
+      'Content-Type': 'application/octet-stream',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload part: ${response.statusText}`);
+  }
+
+  // Get ETag from response headers
+  const etag = response.headers.get('ETag');
+  if (!etag) {
+    throw new Error('No ETag returned from S3');
+  }
+
+  return etag;
+};
+
+/**
+ * Complete multipart upload
+ * @param {string} videoId
+ * @param {string} uploadId
+ * @param {Array<{PartNumber: number, ETag: string}>} parts
+ * @returns {Promise<object>}
+ */
+export const completeMultipartUpload = async (videoId, uploadId, parts) => {
+  const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.MULTIPART_COMPLETE}`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      video_id: videoId,
+      upload_id: uploadId,
+      parts: parts,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to complete upload: ${response.statusText}`);
+  }
+
+  return await response.json();
+};
+
+/**
+ * Upload video using multipart upload with Transfer Acceleration
+ * @param {File} file - Video file to upload
+ * @returns {Promise<string>} - video_id
+ */
+export const uploadVideoMultipart = async (file) => {
+  // Step 1: Initiate multipart upload
+  const { video_id, upload_id, key } = await initiateMultipartUpload();
+  
+  // Step 2: Calculate number of parts
+  const numParts = Math.ceil(file.size / PART_SIZE);
+  
+  // Step 3: Get presigned URLs for all parts
+  const { parts: urlParts } = await getMultipartUploadUrls(video_id, upload_id, numParts);
+  
+  // Step 4: Upload all parts
+  const uploadedParts = [];
+  
+  for (let i = 0; i < numParts; i++) {
+    const start = i * PART_SIZE;
+    const end = Math.min(start + PART_SIZE, file.size);
+    const partData = file.slice(start, end);
+    
+    const urlPart = urlParts.find(p => p.part_number === i + 1);
+    if (!urlPart) {
+      throw new Error(`No URL for part ${i + 1}`);
+    }
+    
+    const etag = await uploadPart(urlPart.url, partData);
+    
+    uploadedParts.push({
+      PartNumber: i + 1,
+      ETag: etag,
+    });
+  }
+  
+  // Step 5: Complete multipart upload
+  await completeMultipartUpload(video_id, upload_id, uploadedParts);
+  
+  return video_id;
+};
+
 /**
  * Get video details by ID
  * @param {string} videoId

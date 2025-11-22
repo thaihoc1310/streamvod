@@ -13,6 +13,12 @@ from app.schemas.video import (
     VideoListResponse,
     VideoUpdate,
     presignedresponse,
+    MultipartInitiateResponse,
+    MultipartUrlsRequest,
+    MultipartUrlsResponse,
+    MultipartCompleteRequest,
+    MultipartCompleteResponse,
+    PartUrl,
 )
 from app.schemas.user import UploaderInfo
 from app.utils.video_utils import get_db
@@ -20,7 +26,13 @@ from app.models.video import Video
 from app.models.user import User
 from app.models.like import Like
 from app.models.watch_later import WatchLater
-from app.utils.s3_utils import generate_presigned_post
+from app.utils.s3_utils import (
+    generate_presigned_post,
+    initiate_multipart_upload,
+    generate_multipart_presigned_urls,
+    complete_multipart_upload,
+    abort_multipart_upload,
+)
 from app.utils.auth_middleware import get_current_user, get_current_user_optional
 
 router = APIRouter()
@@ -291,4 +303,132 @@ def initiate_video_upload(
             url=presigned["url"],
             fields=presigned["fields"]
         )
+    )
+
+# ===== MULTIPART UPLOAD ENDPOINTS (with Transfer Acceleration) =====
+
+@router.post("/multipart/initiate", response_model=MultipartInitiateResponse)
+def initiate_multipart_video_upload(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Khởi tạo multipart upload session với Transfer Acceleration
+    """
+    vid = str(uuid.uuid4())
+    s3_source_key = f"uploads/{vid}.mp4"
+
+    # Tạo video record trong DB
+    video = Video(
+        id=vid,
+        title="",
+        description="",
+        status="processing",
+        s3_source_key=s3_source_key,
+        s3_dest_prefix=f"hls/{vid}/",
+        uploader_id=current_user.id
+    )
+    db.add(video)
+    db.commit()
+
+    try:
+        # Khởi tạo multipart upload trên S3
+        result = initiate_multipart_upload(s3_source_key, content_type="video/mp4")
+        upload_id = result['upload_id']
+    except Exception as e:
+        db.delete(video)
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to initiate multipart upload: {str(e)}"
+        )
+
+    return MultipartInitiateResponse(
+        video_id=vid,
+        upload_id=upload_id,
+        key=s3_source_key
+    )
+
+@router.post("/multipart/get-urls", response_model=MultipartUrlsResponse)
+def get_multipart_upload_urls(
+    request: MultipartUrlsRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Generate presigned URLs cho từng part (hỗ trợ Transfer Acceleration)
+    """
+    # Verify video belongs to current user
+    video = db.query(Video).filter(Video.id == request.video_id).first()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    
+    if video.uploader_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        # Generate presigned URLs cho các parts
+        urls = generate_multipart_presigned_urls(
+            video.s3_source_key,
+            request.upload_id,
+            request.num_parts
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate presigned URLs: {str(e)}"
+        )
+
+    return MultipartUrlsResponse(
+        parts=[PartUrl(**part) for part in urls]
+    )
+
+@router.post("/multipart/complete", response_model=MultipartCompleteResponse)
+def complete_multipart_video_upload(
+    request: MultipartCompleteRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Hoàn thành multipart upload
+    """
+    # Verify video belongs to current user
+    video = db.query(Video).filter(Video.id == request.video_id).first()
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    
+    if video.uploader_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    try:
+        # Complete multipart upload trên S3
+        parts_data = [
+            {
+                'PartNumber': part.part_number,
+                'ETag': part.etag
+            }
+            for part in request.parts
+        ]
+        
+        complete_multipart_upload(
+            video.s3_source_key,
+            request.upload_id,
+            parts_data
+        )
+    except Exception as e:
+        # Nếu complete fail, có thể abort upload để cleanup
+        try:
+            abort_multipart_upload(video.s3_source_key, request.upload_id)
+        except:
+            pass
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to complete multipart upload: {str(e)}"
+        )
+
+    return MultipartCompleteResponse(
+        video_id=request.video_id,
+        status="processing",
+        message="Upload completed successfully. Video is being processed."
     )

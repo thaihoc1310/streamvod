@@ -7,6 +7,11 @@ export const API_ENDPOINTS = {
   VIDEO_INITIATE: '/videos/initiate',
   VIDEO_BY_ID: (id) => `/videos/${id}`,
   
+  // Multipart Upload (with Transfer Acceleration)
+  MULTIPART_INITIATE: '/videos/multipart/initiate',
+  MULTIPART_GET_URLS: '/videos/multipart/get-urls',
+  MULTIPART_COMPLETE: '/videos/multipart/complete',
+  
   // Authentication
   AUTH_REGISTER: '/auth/register',
   AUTH_LOGIN: '/auth/login',

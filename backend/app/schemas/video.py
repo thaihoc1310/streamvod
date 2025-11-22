@@ -58,6 +58,40 @@ class VideoUpdate(BaseModel):
     title: Optional[str] = Field(default=None, max_length=255)
     description: Optional[str] = None
 
+# Multipart upload schemas
+class MultipartInitiateResponse(BaseModel):
+    video_id: str
+    upload_id: str
+    key: str
+
+class MultipartUrlsRequest(BaseModel):
+    video_id: str
+    upload_id: str
+    num_parts: int
+
+class PartUrl(BaseModel):
+    part_number: int
+    url: str
+
+class MultipartUrlsResponse(BaseModel):
+    parts: list[PartUrl]
+
+class CompletedPart(BaseModel):
+    part_number: int = Field(..., alias="PartNumber")
+    etag: str = Field(..., alias="ETag")
+    
+    model_config = ConfigDict(populate_by_name=True)
+
+class MultipartCompleteRequest(BaseModel):
+    video_id: str
+    upload_id: str
+    parts: list[CompletedPart]
+
+class MultipartCompleteResponse(BaseModel):
+    video_id: str
+    status: str
+    message: str
+
 # summary schemas
 class VideoListResponse(BaseModel):
     page: int

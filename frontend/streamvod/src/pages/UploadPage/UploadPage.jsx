@@ -10,7 +10,7 @@ import formatIcon from '../../assets/icons/fileicon.svg';
 import resolutionIcon from '../../assets/icons/qualityicon.svg';
 import ratioIcon from '../../assets/icons/bulbicon.svg';
 
-import { initiateVideoUpload, uploadVideoToS3 } from '../../services/videoService';
+import { uploadVideoMultipart } from '../../services/videoService';
 import { 
   isValidVideoFormat, 
   isValidFileSize, 
@@ -46,21 +46,22 @@ const UploadPage = () => {
     setUploadError(null);
 
     try {
-      // Step 1: Initiate upload - lấy presigned URL từ backend
-      console.log('Đang khởi tạo upload...');
-      const initResponse = await initiateVideoUpload();
-      const { video_id, presigned } = initResponse;
+      console.log('Đang upload video với multipart + Transfer Acceleration...');
       
-      console.log('Đã nhận video_id:', video_id);
-      console.log('Đang upload file lên S3...');
-
-      // Step 2: Upload file lên S3 bằng presigned POST
-      await uploadVideoToS3(file, presigned);
+      // Upload using multipart upload (hỗ trợ Transfer Acceleration)
+      const video_id = await uploadVideoMultipart(file);
       
-      console.log('Upload thành công! Chuyển sang trang upload-details');
+      console.log('Upload thành công! Video ID:', video_id);
+      console.log('Chuyển sang trang upload-details');
 
-      // Step 3: Navigate sang upload-details với video_id
-      navigate('/upload-details', { state: { videoId: video_id, fileName: file.name, fileSize: file.size } });
+      // Navigate sang upload-details với video_id
+      navigate('/upload-details', { 
+        state: { 
+          videoId: video_id, 
+          fileName: file.name, 
+          fileSize: file.size 
+        } 
+      });
       
     } catch (error) {
       console.error('Upload failed:', error);
@@ -80,7 +81,7 @@ const UploadPage = () => {
 
         <div className={styles.infoGrid}>
           <UploadInfoItem icon={sizeIcon} title="Kích thước">
-            Kích thước tối đa: 5GB
+            Kích thước tối đa: 100GB (hỗ trợ multipart upload)
           </UploadInfoItem>
           <UploadInfoItem icon={formatIcon} title="Định dạng tệp">
             Hỗ trợ: MP4, MOV, AVI, MKV, WebM, FLV, MPEG, 3GP, WMV, M4V
