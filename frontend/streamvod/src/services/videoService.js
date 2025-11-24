@@ -48,7 +48,7 @@ export const uploadVideoToS3 = async (file, presignedData) => {
 
 // ===== MULTIPART UPLOAD (with Transfer Acceleration) =====
 
-const PART_SIZE = 10 * 1024 * 1024; // 10MB per part
+const PART_SIZE = 20 * 1024 * 1024; // 20MB per part
 
 /**
  * Initiate multipart upload
@@ -189,35 +189,48 @@ export const uploadVideoMultipart = async (file, onProgress = null, maxConcurren
     });
   }
   
-  // Upload parts with concurrency control
+  // Upload parts with proper concurrency control
   const uploadWithConcurrency = async (tasks) => {
-    const results = [];
-    const executing = [];
+    let index = 0;
+    const results = new Array(tasks.length);
     
-    for (const task of tasks) {
-      const promise = uploadPart(task.url, task.data, () => {
-        completedParts++;
-        if (onProgress) {
-          onProgress(completedParts, numParts);
-        }
-      }).then(etag => ({
-        PartNumber: task.partNumber,
-        ETag: etag,
-      }));
-      
-      results.push(promise);
-      
-      if (maxConcurrent <= tasks.length) {
-        const e = promise.then(() => executing.splice(executing.indexOf(e), 1));
-        executing.push(e);
+    // Worker function that processes tasks from the queue
+    const worker = async () => {
+      while (index < tasks.length) {
+        const currentIndex = index++;
+        const task = tasks[currentIndex];
         
-        if (executing.length >= maxConcurrent) {
-          await Promise.race(executing);
+        try {
+          const etag = await uploadPart(task.url, task.data, () => {
+            completedParts++;
+            if (onProgress) {
+              onProgress(completedParts, numParts);
+            }
+          });
+          
+          results[currentIndex] = {
+            PartNumber: task.partNumber,
+            ETag: etag,
+          };
+        } catch (error) {
+          console.error(`Failed to upload part ${task.partNumber}:`, error);
+          throw new Error(`Part ${task.partNumber} failed: ${error.message}`);
         }
       }
+    };
+    
+    // Create pool of concurrent workers
+    const workers = [];
+    const concurrency = Math.min(maxConcurrent, tasks.length);
+    
+    for (let i = 0; i < concurrency; i++) {
+      workers.push(worker());
     }
     
-    return Promise.all(results);
+    // Wait for all workers to complete
+    await Promise.all(workers);
+    
+    return results;
   };
   
   // Execute uploads
