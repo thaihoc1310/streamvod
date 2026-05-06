@@ -1,65 +1,64 @@
 # streamvod
 A Video-on-Demand Streaming Platform
 
-#Cách chạy frontend
+📄 **Documentation**: [Final Report (INT3319_3_group_4_final_report.docx)](./INT3319_3_group_4_final_report.docx)
 
-CÀI NODEJS VÀ NPM TRƯỚC SAU ĐÓ LÀM THEO DƯỚI:
+## How to run the frontend
+
+INSTALL NODEJS AND NPM FIRST, THEN FOLLOW THE STEPS BELOW:
 
 ```bash
 cd frontend
-```
-```bash
 npm install
-```
-
-```bash
 npm run dev
 ```
-#Cách chạy backend
 
-PHẢI CÀI python3 VÀ pip TRƯỚC sau đó làm như dưới
+## How to run the backend
 
+YOU MUST INSTALL `python3` AND `pip` FIRST, then follow the steps below:
 
 ```bash 
 cd backend
 ```
 
+Create a virtual environment:
 ```bash
 python3 -m venv venv
+# or
 python -m venv venv
 ```
 
-
+Activate the virtual environment:
 ```bash
 # macOS / Linux
 source venv/bin/activate
-
 
 # Windows
 venv\Scripts\activate
 ```
 
-Khi bật thành công, bạn sẽ thấy terminal đổi thành:
+When successfully activated, your terminal prompt will change to show:
 ```ruby
 (venv) 
 ```
 
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
+Navigate to the app directory:
 ```bash
 cd app
 ```
 
-chạy (có 2 cách, nếu dev phát triển thì chạy):
+Run the application (there are 2 ways; for development, run the following):
 
 ```bash
 fastapi dev main.py
 ```
 
-deployment thì chạy
+For deployment, run:
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-
