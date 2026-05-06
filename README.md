@@ -1,7 +1,7 @@
 # streamvod
 A Video-on-Demand Streaming Platform
 
-📄 **Documentation**: [Final Report (INT3319_3_group_4_final_report.docx)](./INT3319_3_group_4_final_report.docx)
+📄 **Documentation**: [Final Report (INT3319_3_group_4_final_report.pdf)](./INT3319_3_group_4_final_report.pdf)
 
 ## How to run the frontend
 
