@@ -3,6 +3,10 @@ A Video-on-Demand Streaming Platform
 
 📄 **Documentation**: [Final Report (INT3319_3_group_4_final_report.pdf)](./INT3319_3_group_4_final_report.pdf)
 
+## System Architecture
+
+![System Architecture](./architecture.png)
+
 ## How to run the frontend
 
 INSTALL NODEJS AND NPM FIRST, THEN FOLLOW THE STEPS BELOW:
